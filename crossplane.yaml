@@ -1,9 +1,30 @@
-apiVersion: v2
-type: application
-name: crossplane-argocd
-version: 0.0.0 # unused
-appVersion: 0.0.0 # unused
-dependencies:
-  - name: crossplane
-    repository: https://charts.crossplane.io/stable
-    version: 1.19.0
+# The ArgoCD Application for crossplane core components themselves
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: crossplane
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/bbaous/crossplane-argocd
+    targetRevision: HEAD
+    path: crossplane
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: crossplane-system
+  syncPolicy:
+    automated:
+      prune: true    
+    syncOptions:
+    - CreateNamespace=true
+    retry:
+      limit: 1
+      backoff:
+        duration: 5s 
+        factor: 2 
+        maxDuration: 1m
